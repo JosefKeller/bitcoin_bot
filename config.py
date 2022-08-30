@@ -1,1 +1,0 @@
-TESTNET_WALLET = ''

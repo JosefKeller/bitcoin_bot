@@ -3,12 +3,28 @@ import config
 import pydantic_models
 import models
 import bit
+from db import *
 
-wallet = bit.PrivateKeyTestnet(config.TESTNET_WALLET)
-print(f"Баланс: {wallet.get_balance()}")
-print(f"Адрес: {wallet.address}")
-print(f"Приватный ключ: {wallet.to_wif()}")
-print(f"Все транзакции: {wallet.get_transactions()}")
 
-# transaction = wallet.send([('muh9DYMTWXfPEd9zPnfvCS1yX8hPLbkE9e', 1, 'rub')])
-# print(transaction)
+@db_session
+def create_wallet(user: pydantic_models.User = None, private_key: str = None, testnet: bool = False):
+    if not testnet:
+        raw_wallet = bit.Key() if not private_key else bit.Key(private_key)
+    else:
+        raw_wallet = bit.PrivateKeyTestnet() if not private_key else bit.PrivateKeyTestnet(private_key)
+    if user:
+        wallet = Wallet(user=user, private_key=raw_wallet.to_wif(), address=raw_wallet.address)
+    else:
+        wallet = Wallet(private_key=raw_wallet.to_wif(), address=raw_wallet.address)
+    flush()
+    return wallet
+
+
+@db_session
+def create_user(tg_id: int, nick: str = None):
+    if nick:
+        user = User(tg_ID=tg_id, nick=nick, create_date=datetime.now(), wallet=create_wallet())
+    else:
+        user = User(tg_ID=tg_id, create_date=datetime.now(), wallet=create_wallet())
+    flush()
+    return user
