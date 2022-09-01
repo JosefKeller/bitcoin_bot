@@ -35,3 +35,21 @@ class Transaction(pydantic.BaseModel):
     fee: float
     date_of_transaction: datetime
     tx_hash: str
+
+
+class UserToUpdate(pydantic.BaseModel):
+    id: int
+    tg_ID:  int = None
+    nick:   str = None
+    create_date: datetime = None
+    wallet: 'Wallet' = None
+
+
+class UserToCreate(pydantic.BaseModel):
+    tg_ID:  int = None
+    nick:   str = None
+
+
+class TransactionToCreate(pydantic.BaseModel):
+    receiver_address: str
+    amount_btc_without_fee: float
