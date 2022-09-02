@@ -42,9 +42,10 @@ def create_transaction(
     sender.wallet.balance = wallet_of_sender.get_balance()
     if not fee:
         fee = bit.network.fees.get_fee() * 1000
+        print(fee)
     amount_btc_with_fee = amount_btc_without_fee + fee
     if amount_btc_without_fee + fee >= sender.wallet.balance:
-        return f"Too low balance: {sender.wallet.balance}"
+        return {"error": f"Too low balance: {sender.wallet.balance}"}
 
     output = [(receiver_address, amount_btc_without_fee, 'satoshi')]
 
@@ -122,7 +123,6 @@ def get_user_info(user: pydantic_models.User):
             "tg_ID": user.tg_ID if user.tg_ID else None,
             "nick": user.nick if user.nick else None,
             "create_date": user.create_date,
-            # получаем все данные по кошельку
             "wallet": get_wallet_info(user.wallet),
             "sended_transactions": user.sended_transactions if user.sended_transactions else [],
             "received_transactions": user.received_transactions if user.received_transactions else []}

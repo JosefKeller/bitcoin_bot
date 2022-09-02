@@ -66,5 +66,36 @@ def get_user_by_tg_id(tg_id):
     return user
 
 
+@api.get("/wallets")
+@crud.db_session
+def get_wallets():
+    wallets = []
+    for wallet in crud.Wallet.select()[:]:
+        wallets.append(wallet.to_dict())
+    return wallets
+
+
+@api.get("/transactions")
+@crud.db_session
+def get_transactions():
+    transactions = []
+    for transaction in crud.Transaction.select()[:]:
+        transactions.append(transaction.to_dict())
+    return transactions
+
+
+@api.post("/user/{tg_id}/create_transaction")
+@crud.db_session
+def create_transaction(tg_id: int = fastapi.Path(),
+                       transaction: pydantic_models.TransactionToCreate = fastapi.Body()):
+    user = crud.get_user_by_tg_id(tg_id)
+    try:
+        return crud.create_transaction(user,
+                                       transaction.amount_btc_without_fee, transaction.receiver_address).to_dict()
+    except AttributeError:
+        return crud.create_transaction(user,
+                                       transaction.amount_btc_without_fee, transaction.receiver_address)
+
+
 if __name__ == "__main__":
     uvicorn.run("app:api", reload=True)
