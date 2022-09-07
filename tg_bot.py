@@ -1,10 +1,12 @@
 import telebot
 import config
 import pydantic_models
+import math
 
 bot = telebot.TeleBot(config.BOT_TOKEN)
 
 users = config.FAKE_DATABASE['users']
+page = 1
 
 
 @bot.message_handler(commands=['start'])
@@ -87,19 +89,30 @@ def admin_panel(message):
 
 @bot.message_handler(func=lambda message: message.from_user.id == config.TG_ADMIN_ID and message.text == "Все юзеры")
 def all_users(message):
+    global page
+    page = 1
+    pages = math.ceil(len(users) / 4)
     text = f'Юзеры:'
-    inline_markup = telebot.types.InlineKeyboardMarkup()
-    for user in users:
+    inline_markup = telebot.types.InlineKeyboardMarkup(row_width=3)
+    for user in users[page-1:page*4]:
         inline_markup.add(telebot.types.InlineKeyboardButton(text=f'Юзер: {user["name"]}',
                                                              callback_data=f"user_{user['id']}"))
+    forward_btn = telebot.types.InlineKeyboardButton(text='Вперед', callback_data='forward')
+    page_btn = telebot.types.InlineKeyboardButton(text=f'{page}/{pages}', callback_data='page')
+    inline_markup.add(page_btn, forward_btn)
+
     bot.send_message(message.chat.id, text,
                      reply_markup=inline_markup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
+    global page
     query_type = call.data.split('_')[0]
+    pages = math.ceil(len(users) / 4)
+
     if query_type == 'user':
+        page = 1
         user_id = call.data.split('_')[1]
         inline_markup = telebot.types.InlineKeyboardMarkup()
         for user in users:
@@ -121,9 +134,13 @@ def callback_query(call):
 
     if query_type == 'users':
         inline_markup = telebot.types.InlineKeyboardMarkup()
-        for user in users:
+        for user in users[(page-1) * 4:page * 4]:
             inline_markup.add(telebot.types.InlineKeyboardButton(text=f'Юзер: {user["name"]}',
                                                                  callback_data=f"user_{user['id']}"))
+        forward_btn = telebot.types.InlineKeyboardButton(text='Вперед', callback_data='forward')
+        page_btn = telebot.types.InlineKeyboardButton(text=f'{page}/{pages}', callback_data='page')
+        inline_markup.add(page_btn, forward_btn)
+
         bot.edit_message_text(text="Юзеры:",
                               chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
@@ -136,9 +153,37 @@ def callback_query(call):
                 print(f'Удален Юзер: {users[i]}')
                 users.pop(i)
         inline_markup = telebot.types.InlineKeyboardMarkup()
-        for user in users:
+        for user in users[(page-1) * 4:page * 4]:
             inline_markup.add(telebot.types.InlineKeyboardButton(text=f'Юзер: {user["name"]}',
                                                                  callback_data=f"user_{user['id']}"))
+        forward_btn = telebot.types.InlineKeyboardButton(text='Вперед', callback_data='forward')
+        page_btn = telebot.types.InlineKeyboardButton(text=f'{page}/{pages}', callback_data='page')
+        inline_markup.add(page_btn, forward_btn)
+
+        bot.edit_message_text(text="Юзеры:",
+                              chat_id=call.message.chat.id,
+                              message_id=call.message.message_id,
+                              reply_markup=inline_markup)
+
+    if query_type in ('forward', 'back'):
+        inline_markup = telebot.types.InlineKeyboardMarkup(row_width=3)
+        if query_type == 'forward':
+            page += 1
+        else:
+            page -= 1
+        print(query_type, page)
+        back_btn = telebot.types.InlineKeyboardButton(text='Назад', callback_data='back')
+        forward_btn = telebot.types.InlineKeyboardButton(text='Вперед', callback_data='forward')
+        page_btn = telebot.types.InlineKeyboardButton(text=f'{page}/{pages}', callback_data='page')
+        for user in users[(page-1) * 4:page * 4]:
+            inline_markup.add(telebot.types.InlineKeyboardButton(text=f'Юзер: {user["name"]}',
+                                                                 callback_data=f"user_{user['id']}"))
+        if page == 1:
+            inline_markup.add(page_btn, forward_btn)
+        elif page == pages:
+            inline_markup.add(back_btn, page_btn)
+        else:
+            inline_markup.add(back_btn, page_btn, forward_btn)
         bot.edit_message_text(text="Юзеры:",
                               chat_id=call.message.chat.id,
                               message_id=call.message.message_id,
