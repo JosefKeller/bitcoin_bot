@@ -75,6 +75,12 @@ def get_wallets():
     return wallets
 
 
+@api.get("/get_user_wallet/{user_id:int}")
+@crud.db_session
+def get_user_wallet(user_id):
+    return crud.get_wallet_info(crud.User[user_id].wallet)
+
+
 @api.get("/transactions")
 @crud.db_session
 def get_transactions():

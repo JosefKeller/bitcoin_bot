@@ -2,6 +2,7 @@ IS_TESTNET = True
 TESTNET_WALLET = 'TestNetPrivateKey'
 BOT_TOKEN = 'TgBotToken'
 TG_ADMIN_ID = 1111111
+API_URL = "http://127.0.0.1:8000"
 FAKE_DATABASE = {'users':[
     {
         "id":1,

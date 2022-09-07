@@ -60,7 +60,7 @@ def create_transaction(
                               amount_btc_without_fee=amount_btc_without_fee,
                               date_of_transaction=datetime.now(),
                               tx_hash=tx_hash)
-    return transaction
+    return transaction.to_dict()
 
 
 @db_session
