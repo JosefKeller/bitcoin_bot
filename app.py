@@ -103,5 +103,10 @@ def create_transaction(tg_id: int = fastapi.Path(),
                                        transaction.amount_btc_without_fee, transaction.receiver_address)
 
 
+@api.get("/get_user_transactions/{user_id:int}")
+def get_user_transactions(user_id: int = fastapi.Path()):
+    return crud.get_user_transactions(user_id)
+
+
 if __name__ == "__main__":
     uvicorn.run("app:api", reload=True)

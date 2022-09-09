@@ -60,3 +60,7 @@ def create_transaction(tg_id, receiver_address: str, amount_btc_without_fee: flo
                'amount_btc_without_fee': amount_btc_without_fee}
     response = requests.post(f"{API_URL}/create_transaction/{user_dict['id']}", json=payload)
     return response.text
+
+
+def get_user_transactions(user_id: int):
+    return requests.get(f"{API_URL}/get_user_transactions/{user_id}").json()

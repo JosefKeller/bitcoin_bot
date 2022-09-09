@@ -140,3 +140,12 @@ def update_user(user: pydantic_models.UserToUpdate):
     if user.wallet:
         user_to_update.wallet = user.wallet
     return user_to_update
+
+
+@db_session
+def get_user_transactions(user_id: int):
+    transactions = Transaction.select(lambda t: t.sender.id == user_id or t.receiver.id == user_id)
+    transactions_list = []
+    for transaction in transactions:
+        transactions_list.append(get_transaction_info(transaction))
+    return transactions_list
